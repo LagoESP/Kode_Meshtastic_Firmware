@@ -192,6 +192,8 @@ ScanI2C::DeviceAddress cardkb_found = ScanI2C::ADDRESS_NONE;
 uint8_t kb_model;
 // global bool to record that a kb is present
 bool kb_found = false;
+// global bool to record that on-screen keyboard (OSK) is present
+bool osk_found = false;
 
 // The I2C address of the RTC Module (if found)
 ScanI2C::DeviceAddress rtc_found = ScanI2C::ADDRESS_NONE;
@@ -791,14 +793,7 @@ void setup()
     }
 #endif
 
-    // If we're taking on the repeater role, use NextHopRouter and turn off 3V3_S rail because peripherals are not needed
-    if (config.device.role == meshtastic_Config_DeviceConfig_Role_REPEATER) {
-        router = new NextHopRouter();
-#ifdef PIN_3V3_EN
-        digitalWrite(PIN_3V3_EN, LOW);
-#endif
-    } else
-        router = new ReliableRouter();
+    router = new ReliableRouter();
 
     // only play start melody when role is not tracker or sensor
     if (config.power.is_power_saving == true &&
@@ -924,8 +919,7 @@ void setup()
     if (sensor_detected == false) {
 #endif
         if (HAS_GPS) {
-            if (config.device.role != meshtastic_Config_DeviceConfig_Role_REPEATER &&
-                config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
+            if (config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
                 gps = GPS::createGps();
                 if (gps) {
                     gpsStatus->observe(&gps->newStatus);
@@ -1000,6 +994,7 @@ void setup()
             config.pullupSense = INPUT_PULLUP;
             config.intRoutine = []() {
                 UserButtonThread->userButton.tick();
+                UserButtonThread->setIntervalFromNow(0);
                 runASAP = true;
                 BaseType_t higherWake = 0;
                 mainDelay.interruptFromISR(&higherWake);
@@ -1020,6 +1015,7 @@ void setup()
     touchConfig.pullupSense = pullup_sense;
     touchConfig.intRoutine = []() {
         TouchButtonThread->userButton.tick();
+        TouchButtonThread->setIntervalFromNow(0);
         runASAP = true;
         BaseType_t higherWake = 0;
         mainDelay.interruptFromISR(&higherWake);
@@ -1039,6 +1035,7 @@ void setup()
     cancelConfig.pullupSense = pullup_sense;
     cancelConfig.intRoutine = []() {
         CancelButtonThread->userButton.tick();
+        CancelButtonThread->setIntervalFromNow(0);
         runASAP = true;
         BaseType_t higherWake = 0;
         mainDelay.interruptFromISR(&higherWake);
@@ -1059,6 +1056,7 @@ void setup()
     backConfig.pullupSense = pullup_sense;
     backConfig.intRoutine = []() {
         BackButtonThread->userButton.tick();
+        BackButtonThread->setIntervalFromNow(0);
         runASAP = true;
         BaseType_t higherWake = 0;
         mainDelay.interruptFromISR(&higherWake);
@@ -1093,6 +1091,7 @@ void setup()
         userConfig.pullupSense = pullup_sense;
         userConfig.intRoutine = []() {
             UserButtonThread->userButton.tick();
+            UserButtonThread->setIntervalFromNow(0);
             runASAP = true;
             BaseType_t higherWake = 0;
             mainDelay.interruptFromISR(&higherWake);
@@ -1110,6 +1109,7 @@ void setup()
         userConfigNoScreen.pullupSense = pullup_sense;
         userConfigNoScreen.intRoutine = []() {
             UserButtonThread->userButton.tick();
+            UserButtonThread->setIntervalFromNow(0);
             runASAP = true;
             BaseType_t higherWake = 0;
             mainDelay.interruptFromISR(&higherWake);
@@ -1440,6 +1440,10 @@ void setup()
 #endif
 #endif
 
+#if defined(HAS_TRACKBALL) || (defined(INPUTDRIVER_ENCODER_TYPE) && INPUTDRIVER_ENCODER_TYPE == 2)
+    osk_found = true;
+#endif
+
 #if defined(ARCH_ESP32) && !MESHTASTIC_EXCLUDE_WEBSERVER
     // Start web server thread.
     webServerThread = new WebServerThread();
@@ -1601,6 +1605,9 @@ void loop()
 
     // We want to sleep as long as possible here - because it saves power
     if (!runASAP && loopCanSleep()) {
+#ifdef DEBUG_LOOP_TIMING
+        LOG_DEBUG("main loop delay: %d", delayMsec);
+#endif
         mainDelay.delay(delayMsec);
     }
 }
