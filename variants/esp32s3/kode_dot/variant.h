@@ -19,7 +19,7 @@
 #define NEOPIXEL_COUNT 1
 #define NEOPIXEL_DATA 4
 #define NEOPIXEL_TYPE (NEO_GRB + NEO_KHZ800)
-#define ENABLE_AMBIENTLIGHTING
+// #define ENABLE_AMBIENTLIGHTING
 
 // ---- LoRa (LR1121 on Radio module)
 #define USE_LR1121

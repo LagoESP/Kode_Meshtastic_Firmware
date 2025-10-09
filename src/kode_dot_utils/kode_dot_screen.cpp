@@ -37,11 +37,10 @@ static Arduino_CO5300 *gfx      = nullptr;
  * to 16‑bit RGB565.  Feel free to tweak them if you want a slightly
  * different shade – just keep the names.
  */
-#define MT_COLOR_PRIMARY      0x1E90FF   // #1e90ff – blue (used for background)
-#define MT_COLOR_ACCENT       0xFFA500   // #ffa500 – orange (used for highlights)
-#define MT_COLOR_TEXT_LIGHT   0xFFFFFF   // white
-#define MT_COLOR_TEXT_DARK    0x000000   // black
-#define MT_COLOR_SECONDARY    0x00CED1   // #00ced1 – turquoise (optional)
+#define MT_COLOR_PRIMARY      0x6F52   // #1e90ff – blue (used for background)
+#define MT_COLOR_ACCENT       0x2967   // #ffa500 – orange (used for highlights)
+#define MT_COLOR_TEXT_LIGHT   0xFFFF   // white
+#define MT_COLOR_TEXT_DARK    0x0000   // black
 
 /* ────────────────────── Display task ────────────────────── */
 static void displayTask(void *param) {
@@ -77,19 +76,7 @@ static void displayTask(void *param) {
     gfx->setCursor(65, 250);          // adjust as needed
     gfx->print("Hello World!");
 
-    /* ── Contador dinámico (text light) ─────────────── */
-    static int counter = 0;
-    gfx->setTextSize(2);
-    gfx->setTextColor(MT_COLOR_TEXT_LIGHT);
-    gfx->setCursor(140, 320);
-    gfx->printf("Count: %d", counter++);
-
-    /* Optional: show a secondary colour somewhere
-     * e.g. a small status icon or progress bar.
-     */
-    // gfx->fillRect(10, 10, 20, 20, MT_COLOR_SECONDARY);
-
-    vTaskDelay(pdMS_TO_TICKS(1000));   // refresh every second
+    // vTaskDelay(pdMS_TO_TICKS(1000));   // refresh every second
   }
 }
 
