@@ -62,16 +62,42 @@ static void displayTask(void *param) {
     }
 
     gfx->setRotation(0);
-    gfx->setBrightness(255);   // full brightness
+    gfx->setBrightness(80);   // full brightness
     gfx->displayOn();
     Serial.println("[Display] ✅ Pantalla inicializada");
 
+    // Fill screen with primary color (blue background)
     gfx->fillScreen(MT_COLOR_PRIMARY);
+    
+    // Draw Meshtastic logo
     gfx->draw16bitRGBBitmap(0, 0, meshtastic_logo, meshtastic_logo_width, meshtastic_logo_height);
-    return;
+    
+    // Calculate screen dimensions
+    int16_t width = DSP_HOR_RES;   // 410
+    int16_t height = DSP_VER_RES;  // 502
+    
+    // Calculate the starting Y position of the lower third
+    int16_t lowerThirdY = (2 * height) / 3; // ~334
+    
+    // Clear the lower third to primary color (optional, for clean background)
+    gfx->fillRect(0, lowerThirdY, width, height - lowerThirdY, MT_COLOR_PRIMARY);
+    
+    // Set text properties
+    gfx->setTextColor(MT_COLOR_ACCENT); // Orange accent color
+    gfx->setTextWrap(false);
+    
+    // Draw "Kode Dot Edition" - manually centered for 410px width
+    gfx->setTextSize(3);
+    gfx->setCursor(95, lowerThirdY + 20); // X=95 is roughly centered for this text
+    gfx->print("Kode Dot Edition");
+    
+    // Draw "Adapted by @Lagortinez" - manually centered
+    gfx->setTextSize(2);
+    gfx->setCursor(115, lowerThirdY + 50); // X=115 is roughly centered for this text
+    gfx->print("Adapted by @Lagortinez");
+
     vTaskDelete(nullptr);
 }
-
 /* ────────────────────── Startup helper ────────────────────── */
 void startDisplayTask() {
 #if CONFIG_FREERTOS_UNICORE
