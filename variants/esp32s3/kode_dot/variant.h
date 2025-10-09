@@ -2,7 +2,6 @@
 #define I2C_SDA 48
 #define I2C_SCL 47
 
-
 // ---- Battery Declaration Below
 
 // --- Battery Charger PPM BQ25896

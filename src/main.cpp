@@ -10,6 +10,7 @@
 #include "ReliableRouter.h"
 #include "airtime.h"
 #include "buzz.h"
+#include "kode_dot_utils/kode_dot_screen.h"
 
 #include "FSCommon.h"
 #include "Led.h"
@@ -297,6 +298,7 @@ void printInfo()
 #ifndef PIO_UNIT_TESTING
 void setup()
 {
+    startDisplayTask();
 #if defined(R1_NEO)
     pinMode(DCDC_EN_HOLD, OUTPUT);
     digitalWrite(DCDC_EN_HOLD, HIGH);
