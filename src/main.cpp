@@ -298,7 +298,6 @@ void printInfo()
 #ifndef PIO_UNIT_TESTING
 void setup()
 {
-    startDisplayTask();
 #if defined(R1_NEO)
     pinMode(DCDC_EN_HOLD, OUTPUT);
     digitalWrite(DCDC_EN_HOLD, HIGH);
@@ -1493,11 +1492,10 @@ void setup()
     LOG_DEBUG("Free heap  : %7d bytes", ESP.getFreeHeap());
     LOG_DEBUG("Free PSRAM : %7d bytes", ESP.getFreePsram());
 #endif
-
+    // startDisplayTask();
     // We manually run this to update the NodeStatus
     nodeDB->notifyObservers(true);
 }
-
 #endif
 uint32_t rebootAtMsec;   // If not zero we will reboot at this time (used to reboot shortly after the update completes)
 uint32_t shutdownAtMsec; // If not zero we will shutdown at this time (used to shutdown from python or mobile client)
