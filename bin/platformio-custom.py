@@ -8,45 +8,55 @@ import json
 import re
 import time
 from datetime import datetime
+import shutil  # Added for file operations
 
 from readprops import readProps
 
 Import("env")
+Import("projenv") # Moved up to make sure we can access verObj globally or early
+
 platform = env.PioPlatform()
 
+# 1. Read Version Props EARLY so we can use it in the post-process function
+prefsLoc = env["PROJECT_DIR"] + "/version.properties"
+verObj = readProps(prefsLoc)
+
 # --- KODE OS MODIFICATION START ---
-# We override the standard Meshtastic binary merging logic because
-# Kode OS handles the bootloader and partition table. We only need
-# the application binary to be flashed at 0x400000.
+# We override the standard Meshtastic binary merging logic.
+# We rename the output bin to Meshtastic_vX.X.X.bin for easier identification.
 
 def kode_os_post_process(source, target, env):
     print("--- Kode OS: Post-processing for App Build ---")
     
-    firmware_name = env.subst("$BUILD_DIR/${PROGNAME}.bin")
+    # Original firmware path
+    firmware_source = env.subst("$BUILD_DIR/${PROGNAME}.bin")
     
-    # NOTE: The actual offset handling is usually done in the linker script 
-    # or partition table (partitions.csv), but we can rename the file here
-    # to make it clear this is a Kode App.
+    # Define the new name using the version object we loaded
+    # Example: Meshtastic_v2.5.0.bin
+    new_name = f"Meshtastic_v{verObj['short']}.bin"
+    firmware_dest = join(env.subst("$BUILD_DIR"), new_name)
     
-    print(f"firmware binary: {firmware_name}")
-    print("Ready for upload to 0x400000 via custom upload command in platformio.ini")
+    print(f"Renaming firmware to: {new_name}")
+    
+    try:
+        shutil.copy(firmware_source, firmware_dest)
+        print(f"Success! Firmware available at: {firmware_dest}")
+        print(f"Ready for upload to 0x400000")
+    except Exception as e:
+        print(f"Error renaming file: {e}")
 
-# We disable the standard esp32_create_combined_bin for Kode OS builds
-# to prevent overwriting the custom bootloader/partitions of Kode OS.
 # --- KODE OS MODIFICATION END ---
 
 if platform.name == "espressif32":
     sys.path.append(join(platform.get_package_dir("tool-esptoolpy")))
     import esptool
 
-    # KODE OS: Changed from esp32_create_combined_bin to custom handler
-    # or simply do nothing if we just want the raw .bin
+    # Attach the renaming function to the build process
     env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", kode_os_post_process)
 
     esp32_kind = env.GetProjectOption("custom_esp32_kind")
     if esp32_kind == "esp32":
         # Free up some IRAM by removing auxiliary SPI flash chip drivers.
-        # Wrapped stub symbols are defined in src/platform/esp32/iram-quirk.c.
         env.Append(
             LINKFLAGS=[
                 "-Wl,--wrap=esp_flash_chip_gd",
@@ -63,10 +73,6 @@ if platform.name == "nordicnrf52":
                       env.VerboseAction(f"\"{sys.executable}\" ./bin/uf2conv.py \"$BUILD_DIR/firmware.hex\" -c -f 0xADA52840 -o \"$BUILD_DIR/firmware.uf2\"",
                                         "Generating UF2 file"))
 
-Import("projenv")
-
-prefsLoc = projenv["PROJECT_DIR"] + "/version.properties"
-verObj = readProps(prefsLoc)
 print("Using meshtastic platformio-custom.py, firmware version " + verObj["long"] + " on " + env.get("PIOENV"))
 
 # get repository owner if git is installed
