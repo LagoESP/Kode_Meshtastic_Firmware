@@ -35,7 +35,7 @@ using namespace STM32_LittleFS_Namespace;
 // ESP32 version
 #include "LittleFS.h"
 #define FSCom LittleFS
-#define FSBegin() FSCom.begin(true) // format on failure
+#define FSBegin() FSCom.begin(true, "/littlefs", 10, "storage") // format on failure
 #define FILE_O_WRITE "w"
 #define FILE_O_READ "r"
 #endif
