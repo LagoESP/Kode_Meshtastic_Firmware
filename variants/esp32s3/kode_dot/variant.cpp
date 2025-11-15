@@ -1,6 +1,6 @@
+#include <kode_dot_utils/kode_dot_screen.h>
 
-
-void initVariant()
+void lateInitVariant()
 {
-
+    startDisplayTask();
 }
