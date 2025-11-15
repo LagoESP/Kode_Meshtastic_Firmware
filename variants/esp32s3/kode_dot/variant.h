@@ -1,3 +1,5 @@
+#define KODE_DOT
+
 // ---- System I2C bus (Kode Dot): SDA=48, SCL=47
 #define I2C_SDA 48
 #define I2C_SCL 47
