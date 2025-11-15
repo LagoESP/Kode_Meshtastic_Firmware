@@ -7,6 +7,7 @@
 
 void lateInitVariant()
 {
+    LOG_DEBUG("Kode Dot tracker lateInitVariant");
     startDisplayTask();
 }
 
